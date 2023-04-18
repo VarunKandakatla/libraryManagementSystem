@@ -12,4 +12,19 @@ public interface BookService {
     List<BookResponseDTO> getAllBooksById(int id);
 
     List<BookResponseDTO> getAll();
+
+    List<BookResponseDTO> getByname(String name);
+
+    BookResponseDTO getBookbyId(int id);
+
+    BookResponseDTO updateName(int id, String newName);
+
+    BookResponseDTO updatePrice(int id, int price);
+
+    String DeleteBook(int id);
+
+    String deleteAll();
+
+    List<BookResponseDTO> getBooksofStudent(int id);
+    String resetAllBooks();
 }

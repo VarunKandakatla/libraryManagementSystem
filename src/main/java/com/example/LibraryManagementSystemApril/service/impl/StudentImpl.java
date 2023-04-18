@@ -1,16 +1,20 @@
 package com.example.LibraryManagementSystemApril.service.impl;
 
+import com.example.LibraryManagementSystemApril.DTOs.BookResponseDTO;
 import com.example.LibraryManagementSystemApril.DTOs.StudentRequestDTO;
 import com.example.LibraryManagementSystemApril.DTOs.StudentResponseDTO;
+import com.example.LibraryManagementSystemApril.DTOs.StudentUpdatedResponseDto;
+import com.example.LibraryManagementSystemApril.Enum.Department;
 import com.example.LibraryManagementSystemApril.Enum.Status;
+import com.example.LibraryManagementSystemApril.entity.Book;
 import com.example.LibraryManagementSystemApril.entity.Cards;
 import com.example.LibraryManagementSystemApril.entity.Student;
+import com.example.LibraryManagementSystemApril.repository.CardsRepository;
 import com.example.LibraryManagementSystemApril.repository.StudentRepository;
 import com.example.LibraryManagementSystemApril.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,6 +24,9 @@ import java.util.List;
 public class StudentImpl implements StudentService {
     @Autowired
     StudentRepository studentRepository;
+
+    @Autowired
+    CardsRepository cardsRepository;
 
     @Override
     public StudentResponseDTO addStudent(StudentRequestDTO studentRequestDTO) {
@@ -53,19 +60,7 @@ public class StudentImpl implements StudentService {
     @Override
     public List<StudentResponseDTO> getStudents() {
         List<Student> studentList=studentRepository.findAll();
-        List<StudentResponseDTO> studentResponseDTOSList=new ArrayList<>();
-
-        for(Student student: studentList)
-        {
-            StudentResponseDTO studentResponseDTO=new StudentResponseDTO();
-            studentResponseDTO.setId(student.getId());
-            studentResponseDTO.setName(student.getName());
-            studentResponseDTO.setContact(student.getContact());
-
-            studentResponseDTOSList.add(studentResponseDTO);
-        }
-
-        return studentResponseDTOSList;
+        return studentToStudentDTOs(studentList);
     }
 
     @Override
@@ -74,5 +69,106 @@ public class StudentImpl implements StudentService {
         studentRepository.deleteById(id);
 
         return student.getName()+" is Deleted";
+    }
+
+    @Override
+    public StudentResponseDTO getById(int id) {
+        Student student = studentRepository.findById(id).get();
+        StudentResponseDTO studentResponseDTO=new StudentResponseDTO();
+        studentResponseDTO.setName(student.getName());
+        studentResponseDTO.setId(student.getId());
+        studentResponseDTO.setContact(student.getContact());
+
+        return studentResponseDTO;
+    }
+
+    @Override
+    public List<StudentResponseDTO> getByName(String name) {
+        List<Student> studentList=studentRepository.findByName(name);
+        return studentToStudentDTOs(studentList);
+    }
+
+    @Override
+    public List<StudentResponseDTO> getByBranch(Department department) {
+        List<Student> studentList=studentRepository.findByDepartment(department);
+        return studentToStudentDTOs(studentList);
+    }
+
+    @Override
+    public StudentUpdatedResponseDto updateName(int id, String name) {
+        Student student = studentRepository.findById(id).get();
+        student.setName(name);
+         Student updatedStudent=studentRepository.save(student);
+
+        StudentUpdatedResponseDto studentUpdateNameDto=new StudentUpdatedResponseDto();
+        studentUpdateNameDto.setId(updatedStudent.getId());
+        studentUpdateNameDto.setName(updatedStudent.getName());
+        studentUpdateNameDto.setDepartment(updatedStudent.getDepartment());
+
+        return  studentUpdateNameDto;
+    }
+
+    @Override
+    public StudentUpdatedResponseDto updateBranch(int id, Department department) {
+        Student student= studentRepository.findById(id).get();
+        student.setDepartment(department);
+       Student updatedStudent= studentRepository.save(student);
+
+        StudentUpdatedResponseDto studentUpdateNameDto=new StudentUpdatedResponseDto();
+        studentUpdateNameDto.setId(updatedStudent.getId());
+        studentUpdateNameDto.setName(updatedStudent.getName());
+        studentUpdateNameDto.setDepartment(updatedStudent.getDepartment());
+
+        return studentUpdateNameDto;
+    }
+
+    @Override
+    public String DeleteById(int id) {
+        studentRepository.deleteById(id);
+        return "Successfully Deleted";
+    }
+
+    @Override
+    public String BlockCard(int id) {
+        Student student=studentRepository.findById(id).get();
+        student.getCards().setStatus(Status.BLOCKED);
+        studentRepository.save(student);
+
+        return "BLOCKED ! ! !";
+    }
+
+    @Override
+    public List<BookResponseDTO> getBooksofStudent(int id) {
+        Cards cards=cardsRepository.findById(id).get();
+        List<Book> bookList=cards.getBooks();
+        List<BookResponseDTO> bookResponseDTOList=new ArrayList<>();
+        for(Book book: bookList)
+        {
+            BookResponseDTO bookResponseDTO=new BookResponseDTO();
+            bookResponseDTO.setAuthor(book.getAuthor().getName());
+            bookResponseDTO.setTitle(book.getTitle());
+            bookResponseDTO.setGenre(book.getGenre());
+            bookResponseDTO.setPublications(book.getPublications());
+            bookResponseDTO.setPrice(book.getPrice());
+            bookResponseDTOList.add(bookResponseDTO);
+        }
+        return bookResponseDTOList;
+    }
+
+
+    public List<StudentResponseDTO> studentToStudentDTOs(List<Student> studentList)
+    {
+        List<StudentResponseDTO> studentResponseDTOList=new ArrayList<>();
+
+        for(Student student: studentList)
+        {
+            StudentResponseDTO studentResponseDTO=new StudentResponseDTO();
+            studentResponseDTO.setId(student.getId());
+            studentResponseDTO.setName(student.getName());
+            studentResponseDTO.setContact(student.getContact());
+
+            studentResponseDTOList.add(studentResponseDTO);
+        }
+        return studentResponseDTOList;
     }
 }

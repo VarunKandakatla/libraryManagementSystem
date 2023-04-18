@@ -16,11 +16,12 @@ import java.util.List;
 
 @Service
 public class BookServiceImpl implements BookService {
-    @Autowired
-    BookRepository bookRepository;
 
     @Autowired
     AuthorRepository authorRepository;
+    @Autowired
+    BookRepository bookRepository;
+
 
     @Override
     public BookResponseDTO addBook(BookRequestDTO bookRequestDTO) throws AuthorNotFound {
@@ -63,6 +64,90 @@ public class BookServiceImpl implements BookService {
     public List<BookResponseDTO> getAll() {
         List<Book> books=bookRepository.findAll();
         return BookstoBooksDTO(books);
+    }
+
+    @Override
+    public List< BookResponseDTO> getByname(String name) {
+        List<Book> books=bookRepository.findByTitle(name);
+
+        return BookstoBooksDTO(books);
+    }
+
+    @Override
+    public BookResponseDTO getBookbyId(int id) {
+        Book book=bookRepository.findById(id).get();
+
+        BookResponseDTO bookResponseDTO=new BookResponseDTO();
+        bookResponseDTO.setTitle(book.getTitle());
+        bookResponseDTO.setGenre(book.getGenre());
+        bookResponseDTO.setPublications(book.getPublications());
+        bookResponseDTO.setPrice(book.getPrice());
+        bookResponseDTO.setAuthor(book.getAuthor().getName());
+         return bookResponseDTO;
+    }
+
+    @Override
+    public BookResponseDTO updateName(int id, String newName) {
+        Book book=bookRepository.findById(id).get();
+        book.setTitle(newName);
+        bookRepository.save(book);
+
+        BookResponseDTO bookResponseDTO=new BookResponseDTO();
+        bookResponseDTO.setTitle(book.getTitle());
+        bookResponseDTO.setGenre(book.getGenre());
+        bookResponseDTO.setPublications(book.getPublications());
+        bookResponseDTO.setPrice(book.getPrice());
+        bookResponseDTO.setAuthor(book.getAuthor().getName());
+        return bookResponseDTO;
+    }
+
+    @Override
+    public BookResponseDTO updatePrice(int id, int price) {
+        Book book=bookRepository.findById(id).get();
+        book.setPrice(price);
+        bookRepository.save(book);
+
+        BookResponseDTO bookResponseDTO=new BookResponseDTO();
+        bookResponseDTO.setTitle(book.getTitle());
+        bookResponseDTO.setGenre(book.getGenre());
+        bookResponseDTO.setPublications(book.getPublications());
+        bookResponseDTO.setPrice(book.getPrice());
+        bookResponseDTO.setAuthor(book.getAuthor().getName());
+        return bookResponseDTO;
+    }
+
+    @Override
+    public String DeleteBook(int id) {
+        Book book=bookRepository.findById(id).get();
+        bookRepository.delete(book);
+        return book.getTitle()+" Deleted";
+    }
+
+    @Override
+    public String deleteAll() {
+        bookRepository.deleteAll();
+        return "Deleted All Books";
+    }
+
+    @Override
+    public List<BookResponseDTO> getBooksofStudent(int id) {
+        List<Book> bookList=bookRepository.findByCards(id);
+        return BookstoBooksDTO(bookList);
+    }
+
+    @Override
+    public String resetAllBooks() {
+        List<Book> bookList=bookRepository.findAll();
+
+        for(Book book: bookList)
+        {
+            book.setBookIssued(false);
+//            book.getCards().getBooks().clear();
+            book.setCards(null);
+            bookRepository.save(book);
+        }
+
+        return "Successfully Resetted";
     }
 
     public List<BookResponseDTO> BookstoBooksDTO(List<Book>books)

@@ -2,8 +2,11 @@ package com.example.LibraryManagementSystemApril.controller;
 
 import com.example.LibraryManagementSystemApril.DTOs.AuthorRequestDTO;
 import com.example.LibraryManagementSystemApril.DTOs.AuthorResponseDTO;
+import com.example.LibraryManagementSystemApril.DTOs.BookResponseDTO;
+import com.example.LibraryManagementSystemApril.Enum.Department;
 import com.example.LibraryManagementSystemApril.Exceptions.AuthorNotFound;
 import com.example.LibraryManagementSystemApril.entity.Author;
+import com.example.LibraryManagementSystemApril.entity.Book;
 import com.example.LibraryManagementSystemApril.service.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +40,35 @@ public class AuthorController {
     public List<AuthorResponseDTO> getall()
     {
         return authorService.getall();
+    }
+
+    @GetMapping("/getCountofBooksByAuthors")
+    public List<String> getCountofBooks()
+    {
+        return authorService.getCountofBooks();
+    }
+
+    @GetMapping("/getTotalBooksbyAuthor")
+    public List<BookResponseDTO> getAllBooksbyAuthor(@RequestParam("id") int id)
+    {
+        return authorService.getTotalBooksbyAuthor(id);
+    }
+
+    @PutMapping("/updateNamebyId")
+    public AuthorResponseDTO updateNamebyId(@RequestParam("id") int id,String name)
+    {
+        return authorService.updateNamebyId(id,name);
+    }
+
+    @DeleteMapping("/deleteAuthorById")
+    public String deleteAuthor(@RequestParam("id") int id)
+    {
+        return authorService.DeleteAuthor(id);
+    }
+
+    @DeleteMapping("/deleteAll")
+    public String DeleteAll()
+    {
+        return authorService.DeleteAll();
     }
 }
