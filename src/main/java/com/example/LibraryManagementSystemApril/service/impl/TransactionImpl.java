@@ -14,14 +14,13 @@ import com.example.LibraryManagementSystemApril.repository.CardsRepository;
 import com.example.LibraryManagementSystemApril.repository.TransactionRepository;
 import com.example.LibraryManagementSystemApril.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
 
 @Service
-
-
 public class TransactionImpl implements TransactionService {
 
     @Autowired
@@ -32,6 +31,9 @@ public class TransactionImpl implements TransactionService {
 
     @Autowired
     CardsRepository cardsRepository;
+
+    @Autowired
+    JavaMailSender emailSender;
 
     @Override
     public TransactionResponseDto getBookbyIds(TransactionRequestDto transactionRequestDto, Transaction transaction) throws StudentNotFound, BookNotFound {
@@ -83,6 +85,10 @@ public class TransactionImpl implements TransactionService {
 
         TransactionResponseDto transactionResponseDto=TransactionToDTOs(transaction);
         transactionResponseDto.setMessage("Successfully issued the book: "+book.getTitle());
+
+        //Sending Mail
+        IssueBooksendMail(transaction,cards,book);
+
         return transactionResponseDto;
     }
 
@@ -143,11 +149,15 @@ public class TransactionImpl implements TransactionService {
        book.setBookIssued(false);
 
        cards.getBooks().remove(book);
-       cards.getTransactions().add(transaction);
+       //Adding transaction double here
+//       cards.getTransactions().add(transaction);
        cardsRepository.save(cards);
 
        TransactionResponseDto transactionResponseDto=TransactionToDTOs(transaction);
        transactionResponseDto.setMessage("Successfully returned book: "+book.getTitle());
+
+       //sending mail
+        returnBookSendMail(transaction,cards,book);
        return transactionResponseDto;
     }
 
@@ -158,5 +168,37 @@ public class TransactionImpl implements TransactionService {
         transactionResponseDto.setDate(new Date().toString());
         transactionResponseDto.setStatus(transaction.getStatus());
         return transactionResponseDto;
+    }
+    //Mail Function
+    public void IssueBooksendMail(Transaction transaction, Cards cards,Book book)
+    {
+        String text="Hi "+cards.getStudent().getName()+"!\nCongratulations! You have been issued a book: "+book.getTitle()+
+                ", which has been written by, "+book.getAuthor().getName()+". Hope you will enjoy it! \nHappy Learning! \n \n" +
+                "Here is your transaction Details: \ntransaction no: "+transaction.getTransactionId()+"\ntransaction status: " +
+                transaction.getStatus()+"\nDate: "+transaction.getDate().toString();
+
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("librarymanagementsystemapril.com");
+        message.setTo(cards.getStudent().getContact());
+        message.setSubject("Congrats! Book Issued! ");
+        message.setText(text);
+        emailSender.send(message);
+    }
+
+    public void returnBookSendMail(Transaction transaction, Cards cards, Book book)
+    {
+        String text="Hi "+cards.getStudent().getName()+"!\nYou are returning a book: "+book.getTitle()+
+                ", which has been written by, "+book.getAuthor().getName()+". Hope you have enjoyed it! \nTake new book & Gain more Knowledge! \nThank You! \n \n" +
+                "Here is your transaction Details: \ntransaction no: "+transaction.getTransactionId()+"\ntransaction status: " +
+                transaction.getStatus()+"\nDate: "+transaction.getDate().toString();
+
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("librarymanagementsystemapril.com");
+        message.setTo(cards.getStudent().getContact());
+        message.setSubject("Congrats! Book returned Successfull! ");
+        message.setText(text);
+        emailSender.send(message);
     }
 }

@@ -23,8 +23,8 @@ public class Transaction {
     private int id;
 
     private String transactionId= String.valueOf(UUID.randomUUID());
-    @CreationTimestamp
-    private Date date;
+
+    private Date date=new Date();
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
     @ManyToOne
